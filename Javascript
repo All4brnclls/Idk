@@ -1,0 +1,75 @@
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+
+const player = {
+    x: 50,
+    y: 50,
+    size: 10,
+    trail: [],
+    direction: 'right'
+};
+
+function drawPlayer() {
+    ctx.fillStyle = 'blue';
+    ctx.fillRect(player.x, player.y, player.size, player.size);
+}
+
+function drawTrail() {
+    ctx.fillStyle = 'lightblue';
+    player.trail.forEach(segment => {
+        ctx.fillRect(segment.x, segment.y, player.size, player.size);
+    });
+}
+
+function updateTrail() {
+    if (player.trail.length > 100) {
+        player.trail.shift(); // Limit trail length
+    }
+    player.trail.push({ x: player.x, y: player.y });
+}
+
+function movePlayer() {
+    switch (player.direction) {
+        case 'up': player.y -= player.size; break;
+        case 'down': player.y += player.size; break;
+        case 'left': player.x -= player.size; break;
+        case 'right': player.x += player.size; break;
+    }
+    // Wrap around the screen
+    player.x = (player.x + canvas.width) % canvas.width;
+    player.y = (player.y + canvas.height) % canvas.height;
+
+    // Collision detection with self
+    for (let segment of player.trail) {
+        if (player.x === segment.x && player.y === segment.y) {
+            resetGame(); // Reset on collision
+        }
+    }
+}
+
+function resetGame() {
+    player.x = 50;
+    player.y = 50;
+    player.trail = [];
+}
+
+function gameLoop() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    drawTrail();
+    movePlayer();
+    updateTrail();
+    drawPlayer();
+    requestAnimationFrame(gameLoop);
+}
+
+function handleKeyPress(e) {
+    switch (e.key) {
+        case 'ArrowUp': player.direction = 'up'; break;
+        case 'ArrowDown': player.direction = 'down'; break;
+        case 'ArrowLeft': player.direction = 'left'; break;
+        case 'ArrowRight': player.direction = 'right'; break;
+    }
+}
+
+document.addEventListener('keydown', handleKeyPress);
+gameLoop();
